@@ -1,2 +1,2 @@
-# managebooks_pp
+# Library
 API to manage books
