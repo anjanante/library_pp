@@ -16,14 +16,14 @@ class BookController extends AbstractController
     public function getAllBooks(BookRepository $bookRepository, SerializerInterface $serializer): JsonResponse
     {
         $bookList       = $bookRepository->findAll();
-        $jsonBookList   = $serializer->serialize($bookList,'json');
+        $jsonBookList   = $serializer->serialize($bookList,'json', ['groups' => 'getBooks']);
         return new JsonResponse($jsonBookList, Response::HTTP_OK, [], true);
     }
 
     #[Route('/api/books/{id}', name: 'detailBook', methods:['GET'])]
     public function getOneBook(Book $book, SerializerInterface $serializer): JsonResponse
     {
-        $jsonBook   = $serializer->serialize($book,'json');
+        $jsonBook   = $serializer->serialize($book,'json', ['groups' => 'getBooks']);
         return new JsonResponse($jsonBook, Response::HTTP_OK, [], true);
     }
 }
