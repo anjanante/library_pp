@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Book;
+use App\Repository\AuthorRepository;
 use App\Repository\BookRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -39,11 +40,17 @@ class BookController extends AbstractController
     }
 
     #[Route('/api/books', name: 'createBook', methods:['POST'])]
-    public function createBook(Request $request, EntityManagerInterface $em, SerializerInterface $serializer, UrlGeneratorInterface $urlGenerator): JsonResponse
+    public function createBook(Request $request, EntityManagerInterface $em, SerializerInterface $serializer, UrlGeneratorInterface $urlGenerator, AuthorRepository $authorRepository): JsonResponse
     {
         $book   = $serializer->deserialize($request->getContent(), Book::class, 'json');
+        //set author
+        $content    = $request->toArray();
+        $idAuthor   = $content['idAuthor'] ?? -1;
+        $book->setAuthor($authorRepository->find($idAuthor));
+
         $em->persist($book);
         $em->flush();
+
         $jsonBook   = $serializer->serialize($book,'json', ['groups' => 'getBooks']);
         $location   = $urlGenerator->generate('detailBook', ['id' => $book->getid()], UrlGeneratorInterface::ABSOLUTE_PATH);
         return new JsonResponse($jsonBook, Response::HTTP_CREATED, ['Location' => $location], true);
