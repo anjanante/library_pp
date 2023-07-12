@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\Author;
 use App\Repository\AuthorRepository;
-use App\Repository\BookRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -33,16 +32,10 @@ class AuthorController extends AbstractController
     }
 
     #[Route('/api/authors/{id}', name: 'deleteAuthor', methods:['DELETE'])]
-    public function deleteOneAuthor(Author $author, EntityManagerInterface $em, BookRepository $bookRepository): JsonResponse
+    public function deleteOneAuthor(Author $author, EntityManagerInterface $em): JsonResponse
     {
-        //we must to delete book before 
-        $aBooks = $author->getBooks()->toArray();
-        foreach ($aBooks as $oBook) {
-            $bookRepository->remove($oBook);
-        }
         $em->remove($author);
         $em->flush();
-
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
 
