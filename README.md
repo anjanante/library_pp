@@ -1,2 +1,2 @@
 # Library
-API to manage books
+API REST to manage books an Authors
