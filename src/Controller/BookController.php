@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 
 class BookController extends AbstractController
@@ -54,5 +55,21 @@ class BookController extends AbstractController
         $jsonBook   = $serializer->serialize($book,'json', ['groups' => 'getBooks']);
         $location   = $urlGenerator->generate('detailBook', ['id' => $book->getid()], UrlGeneratorInterface::ABSOLUTE_PATH);
         return new JsonResponse($jsonBook, Response::HTTP_CREATED, ['Location' => $location], true);
+    }
+
+    #[Route('/api/books/{id}', name: 'updateBook', methods:['PUT'])]
+    public function updateBook(Request $request, Book $currentBook, EntityManagerInterface $em, SerializerInterface $serializer,  AuthorRepository $authorRepository): JsonResponse
+    {
+        $book   = $serializer->deserialize($request->getContent(), Book::class, 'json', [AbstractNormalizer::OBJECT_TO_POPULATE => $currentBook]);
+
+        //set author
+        $content    = $request->toArray();
+        $idAuthor   = $content['idAuthor'] ?? -1;
+        $book->setAuthor($authorRepository->find($idAuthor));
+
+        $em->persist($book);
+        $em->flush();
+        
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
 }
