@@ -13,6 +13,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class AuthorController extends AbstractController
 {
@@ -40,9 +41,13 @@ class AuthorController extends AbstractController
     }
 
     #[Route('/api/authors', name: 'createAuthor', methods:['POST'])]
-    public function createAuthor(Request $request, EntityManagerInterface $em, SerializerInterface $serializer, UrlGeneratorInterface $urlGenerator): JsonResponse
+    public function createAuthor(Request $request, EntityManagerInterface $em, SerializerInterface $serializer, UrlGeneratorInterface $urlGenerator, ValidatorInterface $validator): JsonResponse
     {
         $author   = $serializer->deserialize($request->getContent(), Author::class, 'json');
+        $errors = $validator->validate($author);
+        if($errors->count() > 0){
+            return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
+        }
         $em->persist($author);
         $em->flush();
 
@@ -52,9 +57,14 @@ class AuthorController extends AbstractController
     }
 
     #[Route('/api/authors/{id}', name: 'updateAuthor', methods:['PUT'])]
-    public function updateAuthor(Request $request, Author $currentAuthor, EntityManagerInterface $em, SerializerInterface $serializer): JsonResponse
+    public function updateAuthor(Request $request, Author $currentAuthor, EntityManagerInterface $em, SerializerInterface $serializer, ValidatorInterface $validator): JsonResponse
     {
+        $errors = $validator->validate($currentAuthor);
+        if($errors->count() > 0){
+            return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
+        }
         $author   = $serializer->deserialize($request->getContent(), Author::class, 'json', [AbstractNormalizer::OBJECT_TO_POPULATE => $currentAuthor]);
+        
         $em->persist($author);
         $em->flush();
         

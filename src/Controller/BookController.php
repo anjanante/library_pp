@@ -70,16 +70,16 @@ class BookController extends AbstractController
     {
         $book   = $serializer->deserialize($request->getContent(), Book::class, 'json', [AbstractNormalizer::OBJECT_TO_POPULATE => $currentBook]);
 
-        //set author
-        $content    = $request->toArray();
-        $idAuthor   = $content['idAuthor'] ?? -1;
-        $book->setAuthor($authorRepository->find($idAuthor));
-
         $errors = $validator->validate($book);
         if($errors->count() > 0){
             return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
             // throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, "La request is invalid"); //for subscriber
         }
+
+        //set author
+        $content    = $request->toArray();
+        $idAuthor   = $content['idAuthor'] ?? -1;
+        $book->setAuthor($authorRepository->find($idAuthor));
 
         $em->persist($book);
         $em->flush();
