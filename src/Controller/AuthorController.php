@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Author;
 use App\Repository\AuthorRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -33,6 +34,7 @@ class AuthorController extends AbstractController
     }
 
     #[Route('/api/authors/{id}', name: 'deleteAuthor', methods:['DELETE'])]
+    #[IsGranted('ROLE_ADMIN', message: 'You are not the admin, sorry')]
     public function deleteOneAuthor(Author $author, EntityManagerInterface $em): JsonResponse
     {
         $em->remove($author);
@@ -41,6 +43,7 @@ class AuthorController extends AbstractController
     }
 
     #[Route('/api/authors', name: 'createAuthor', methods:['POST'])]
+    #[IsGranted('ROLE_ADMIN', message: 'You are not the admin, sorry')]
     public function createAuthor(Request $request, EntityManagerInterface $em, SerializerInterface $serializer, UrlGeneratorInterface $urlGenerator, ValidatorInterface $validator): JsonResponse
     {
         $author   = $serializer->deserialize($request->getContent(), Author::class, 'json');
@@ -57,6 +60,7 @@ class AuthorController extends AbstractController
     }
 
     #[Route('/api/authors/{id}', name: 'updateAuthor', methods:['PUT'])]
+    #[IsGranted('ROLE_ADMIN', message: 'You are not the admin, sorry')]
     public function updateAuthor(Request $request, Author $currentAuthor, EntityManagerInterface $em, SerializerInterface $serializer, ValidatorInterface $validator): JsonResponse
     {
         $errors = $validator->validate($currentAuthor);
