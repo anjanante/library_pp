@@ -6,6 +6,7 @@ use App\Entity\Book;
 use App\Repository\AuthorRepository;
 use App\Repository\BookRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -36,6 +37,7 @@ class BookController extends AbstractController
     }
 
     #[Route('/api/books/{id}', name: 'deleteBook', methods:['DELETE'])]
+    #[IsGranted('ROLE_ADMIN', message: 'You are not the admin, sorry')]
     public function deleteOneBook(Book $book, EntityManagerInterface $em): JsonResponse
     {
         $em->remove($book);
@@ -44,6 +46,7 @@ class BookController extends AbstractController
     }
 
     #[Route('/api/books', name: 'createBook', methods:['POST'])]
+    #[IsGranted('ROLE_ADMIN', message: 'You are not the admin, sorry')]
     public function createBook(Request $request, EntityManagerInterface $em, SerializerInterface $serializer, UrlGeneratorInterface $urlGenerator, AuthorRepository $authorRepository, ValidatorInterface $validator): JsonResponse
     {
         $book   = $serializer->deserialize($request->getContent(), Book::class, 'json');
@@ -66,6 +69,7 @@ class BookController extends AbstractController
     }
 
     #[Route('/api/books/{id}', name: 'updateBook', methods:['PUT'])]
+    #[IsGranted('ROLE_ADMIN', message: 'You are not the admin, sorry')]
     public function updateBook(Request $request, Book $currentBook, EntityManagerInterface $em, SerializerInterface $serializer,  AuthorRepository $authorRepository, ValidatorInterface $validator): JsonResponse
     {
         $book   = $serializer->deserialize($request->getContent(), Book::class, 'json', [AbstractNormalizer::OBJECT_TO_POPULATE => $currentBook]);
