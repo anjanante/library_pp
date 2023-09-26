@@ -22,9 +22,11 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class BookController extends AbstractController
 {
     #[Route('/api/books', name: 'book', methods:['GET'])]
-    public function getAllBooks(BookRepository $bookRepository, SerializerInterface $serializer): JsonResponse
+    public function getAllBooks(BookRepository $bookRepository, SerializerInterface $serializer, Request $request): JsonResponse
     {
-        $bookList       = $bookRepository->findAll();
+        $nPage  = $request->get('page', 1);
+        $nLimit = $request->get('limit', 3);
+        $bookList       = $bookRepository->findAllWithPagination($nPage, $nLimit);
         $jsonBookList   = $serializer->serialize($bookList,'json', ['groups' => 'getBooks']);
         return new JsonResponse($jsonBookList, Response::HTTP_OK, [], true);
     }

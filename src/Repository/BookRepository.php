@@ -39,6 +39,14 @@ class BookRepository extends ServiceEntityRepository
         }
     }
 
+    public function findAllWithPagination($nPage, $nLimit){
+        return $this->createQueryBuilder('b')
+                   ->setFirstResult(($nPage - 1) * $nLimit)
+                   ->setMaxResults($nLimit)
+                   ->getQuery()
+                   ->getResult();
+    }
+
 //    /**
 //     * @return Book[] Returns an array of Book objects
 //     */
