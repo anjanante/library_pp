@@ -19,9 +19,11 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class AuthorController extends AbstractController
 {
     #[Route('/api/authors', name: 'author', methods:['GET'])]
-    public function getAllAuthors(AuthorRepository $authorRepository, SerializerInterface $serializer): JsonResponse
+    public function getAllAuthors(AuthorRepository $authorRepository, SerializerInterface $serializer, Request $request): JsonResponse
     {
-        $authorList       = $authorRepository->findAll();
+        $nPage  = $request->get('page', 1);
+        $nLimit = $request->get('limit', 3);
+        $authorList       = $authorRepository->findAllWithPagination($nPage, $nLimit);
         $jsonAuthorList   = $serializer->serialize($authorList,'json', ['groups' => 'getAuthors']);
         return new JsonResponse($jsonAuthorList, Response::HTTP_OK, [], true);
     }
