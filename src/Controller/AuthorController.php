@@ -15,16 +15,25 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class AuthorController extends AbstractController
 {
     #[Route('/api/authors', name: 'author', methods:['GET'])]
-    public function getAllAuthors(AuthorRepository $authorRepository, SerializerInterface $serializer, Request $request): JsonResponse
+    public function getAllAuthors(AuthorRepository $authorRepository, SerializerInterface $serializer, Request $request, TagAwareCacheInterface $cache): JsonResponse
     {
         $nPage  = $request->get('page', 1);
         $nLimit = $request->get('limit', 3);
-        $authorList       = $authorRepository->findAllWithPagination($nPage, $nLimit);
-        $jsonAuthorList   = $serializer->serialize($authorList,'json', ['groups' => 'getAuthors']);
+
+        $nIdCache = "getAllAuthors-".$nPage."-".$nLimit;
+
+        $jsonAuthorList    = $cache->get($nIdCache, function(ItemInterface $item) use ($authorRepository, $nPage, $nLimit, $serializer){
+            $item->tag('authorsCache');
+            $authorList = $authorRepository->findAllWithPagination($nPage, $nLimit);
+            return $serializer->serialize($authorList,'json', ['groups' => 'getAuthors']);
+        });
+
         return new JsonResponse($jsonAuthorList, Response::HTTP_OK, [], true);
     }
 
@@ -37,8 +46,9 @@ class AuthorController extends AbstractController
 
     #[Route('/api/authors/{id}', name: 'deleteAuthor', methods:['DELETE'])]
     #[IsGranted('ROLE_ADMIN', message: 'You are not the admin, sorry')]
-    public function deleteOneAuthor(Author $author, EntityManagerInterface $em): JsonResponse
+    public function deleteOneAuthor(Author $author, EntityManagerInterface $em, TagAwareCacheInterface $cache): JsonResponse
     {
+        $cache->invalidateTags(['authorsCache']);
         $em->remove($author);
         $em->flush();
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
