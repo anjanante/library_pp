@@ -17,17 +17,25 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-
+use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class BookController extends AbstractController
 {
     #[Route('/api/books', name: 'book', methods:['GET'])]
-    public function getAllBooks(BookRepository $bookRepository, SerializerInterface $serializer, Request $request): JsonResponse
+    public function getAllBooks(BookRepository $bookRepository, SerializerInterface $serializer, Request $request, TagAwareCacheInterface $cache): JsonResponse
     {
         $nPage  = $request->get('page', 1);
         $nLimit = $request->get('limit', 3);
-        $bookList       = $bookRepository->findAllWithPagination($nPage, $nLimit);
-        $jsonBookList   = $serializer->serialize($bookList,'json', ['groups' => 'getBooks']);
+
+        $nIdCache = "getAllBooks-".$nPage."-".$nLimit;
+
+        $jsonBookList    = $cache->get($nIdCache, function(ItemInterface $item) use ($bookRepository, $nPage, $nLimit, $serializer){
+            $item->tag('booksCache');
+            $bookList = $bookRepository->findAllWithPagination($nPage, $nLimit);
+            return $serializer->serialize($bookList,'json', ['groups' => 'getBooks']);
+        });
+
         return new JsonResponse($jsonBookList, Response::HTTP_OK, [], true);
     }
 
@@ -40,8 +48,9 @@ class BookController extends AbstractController
 
     #[Route('/api/books/{id}', name: 'deleteBook', methods:['DELETE'])]
     #[IsGranted('ROLE_ADMIN', message: 'You are not the admin, sorry')]
-    public function deleteOneBook(Book $book, EntityManagerInterface $em): JsonResponse
+    public function deleteOneBook(Book $book, EntityManagerInterface $em, TagAwareCacheInterface $cache): JsonResponse
     {
+        $cache->invalidateTags(['booksCache']);
         $em->remove($book);
         $em->flush();
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
