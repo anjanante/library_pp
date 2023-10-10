@@ -34,7 +34,8 @@ class BookController extends AbstractController
         $jsonBookList    = $cache->get($nIdCache, function(ItemInterface $item) use ($bookRepository, $nPage, $nLimit, $serializer){
             $item->tag('booksCache');
             $bookList = $bookRepository->findAllWithPagination($nPage, $nLimit);
-            return $serializer->serialize($bookList,'json', ['groups' => 'getBooks']);
+            $context = SerializationContext::create()->setGroups(['getBooks']);
+            return $serializer->serialize($bookList,'json', $context);
         });
 
         return new JsonResponse($jsonBookList, Response::HTTP_OK, [], true);
@@ -60,7 +61,7 @@ class BookController extends AbstractController
 
     #[Route('/api/books', name: 'createBook', methods:['POST'])]
     #[IsGranted('ROLE_ADMIN', message: 'You are not the admin, sorry')]
-    public function createBook(Request $request, EntityManagerInterface $em, SerializerInterface $serializer, UrlGeneratorInterface $urlGenerator, AuthorRepository $authorRepository, ValidatorInterface $validator): JsonResponse
+    public function createBook(Request $request, EntityManagerInterface $em, SerializerInterface $serializer, UrlGeneratorInterface $urlGenerator, AuthorRepository $authorRepository, ValidatorInterface $validator, TagAwareCacheInterface $cache): JsonResponse
     {
         $book   = $serializer->deserialize($request->getContent(), Book::class, 'json');
         //set author
@@ -76,18 +77,25 @@ class BookController extends AbstractController
         $em->persist($book);
         $em->flush();
 
-        $jsonBook   = $serializer->serialize($book,'json', ['groups' => 'getBooks']);
+        //empty the cache
+        $cache->invalidateTags(['booksCache']);
+
+        $context = SerializationContext::create()->setGroups(['getBooks']);
+        $jsonBook   = $serializer->serialize($book,'json', $context);
         $location   = $urlGenerator->generate('detailBook', ['id' => $book->getid()], UrlGeneratorInterface::ABSOLUTE_PATH);
         return new JsonResponse($jsonBook, Response::HTTP_CREATED, ['Location' => $location], true);
     }
 
     #[Route('/api/books/{id}', name: 'updateBook', methods:['PUT'])]
     #[IsGranted('ROLE_ADMIN', message: 'You are not the admin, sorry')]
-    public function updateBook(Request $request, Book $currentBook, EntityManagerInterface $em, SerializerInterface $serializer,  AuthorRepository $authorRepository, ValidatorInterface $validator): JsonResponse
+    public function updateBook(Request $request, Book $currentBook, EntityManagerInterface $em, SerializerInterface $serializer,  AuthorRepository $authorRepository, ValidatorInterface $validator, TagAwareCacheInterface $cache): JsonResponse
     {
-        $book   = $serializer->deserialize($request->getContent(), Book::class, 'json', [AbstractNormalizer::OBJECT_TO_POPULATE => $currentBook]);
+        $newBook   = $serializer->deserialize($request->getContent(), Book::class, 'json');
 
-        $errors = $validator->validate($book);
+        $currentBook->setTitle($newBook->getTitle());
+        $currentBook->setCoverText($newBook->getCoverText());
+
+        $errors = $validator->validate($currentBook);
         if($errors->count() > 0){
             return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
             // throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, "La request is invalid"); //for subscriber
@@ -96,10 +104,13 @@ class BookController extends AbstractController
         //set author
         $content    = $request->toArray();
         $idAuthor   = $content['idAuthor'] ?? -1;
-        $book->setAuthor($authorRepository->find($idAuthor));
+        $currentBook->setAuthor($authorRepository->find($idAuthor));
 
-        $em->persist($book);
+        $em->persist($currentBook);
         $em->flush();
+
+        //empty the cache
+        $cache->invalidateTags(['booksCache']);
         
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
