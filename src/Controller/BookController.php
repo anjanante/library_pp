@@ -15,7 +15,8 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
-use Symfony\Component\Serializer\SerializerInterface;
+use JMS\Serializer\SerializationContext;
+use JMS\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
@@ -42,7 +43,8 @@ class BookController extends AbstractController
     #[Route('/api/books/{id}', name: 'detailBook', methods:['GET'])]
     public function getOneBook(Book $book, SerializerInterface $serializer): JsonResponse
     {
-        $jsonBook   = $serializer->serialize($book,'json', ['groups' => 'getBooks']);
+        $context = SerializationContext::create()->setGroups(['getBooks']);
+        $jsonBook   = $serializer->serialize($book,'json', $context);
         return new JsonResponse($jsonBook, Response::HTTP_OK, [], true);
     }
 

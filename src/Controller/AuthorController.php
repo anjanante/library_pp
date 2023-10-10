@@ -13,7 +13,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
-use Symfony\Component\Serializer\SerializerInterface;
+use JMS\Serializer\SerializationContext;
+use JMS\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
@@ -40,7 +41,8 @@ class AuthorController extends AbstractController
     #[Route('/api/authors/{id}', name: 'detailAuthor', methods:['GET'])]
     public function getOneAuthor(Author $author, SerializerInterface $serializer): JsonResponse
     {
-        $jsonAuthor   = $serializer->serialize($author,'json', ['groups' => 'getAuthors']);
+        $context = SerializationContext::create()->setGroups(['getAuthors']);
+        $jsonAuthor   = $serializer->serialize($author,'json', $context);
         return new JsonResponse($jsonAuthor, Response::HTTP_OK, [], true);
     }
 
