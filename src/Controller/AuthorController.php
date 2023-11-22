@@ -21,6 +21,15 @@ use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class AuthorController extends AbstractController
 {
+    /**
+     * get all authors 
+     *
+     * @param AuthorRepository $authorRepository
+     * @param SerializerInterface $serializer
+     * @param Request $request
+     * @param TagAwareCacheInterface $cache
+     * @return JsonResponse
+     */
     #[Route('/api/authors', name: 'author', methods:['GET'])]
     public function getAllAuthors(AuthorRepository $authorRepository, SerializerInterface $serializer, Request $request, TagAwareCacheInterface $cache): JsonResponse
     {
@@ -39,6 +48,13 @@ class AuthorController extends AbstractController
         return new JsonResponse($jsonAuthorList, Response::HTTP_OK, [], true);
     }
 
+    /**
+     * Get one author from id 
+     *
+     * @param Author $author
+     * @param SerializerInterface $serializer
+     * @return JsonResponse
+     */
     #[Route('/api/authors/{id}', name: 'detailAuthor', methods:['GET'])]
     public function getOneAuthor(Author $author, SerializerInterface $serializer): JsonResponse
     {
@@ -47,6 +63,14 @@ class AuthorController extends AbstractController
         return new JsonResponse($jsonAuthor, Response::HTTP_OK, [], true);
     }
 
+    /**
+     * Delete one author from id. 
+     *
+     * @param Author $author
+     * @param EntityManagerInterface $em
+     * @param TagAwareCacheInterface $cache
+     * @return JsonResponse 
+     */
     #[Route('/api/authors/{id}', name: 'deleteAuthor', methods:['DELETE'])]
     #[IsGranted('ROLE_ADMIN', message: 'You are not the admin, sorry')]
     public function deleteOneAuthor(Author $author, EntityManagerInterface $em, TagAwareCacheInterface $cache): JsonResponse
@@ -57,6 +81,20 @@ class AuthorController extends AbstractController
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
 
+    /**
+     * Example  of data : 
+     * {
+     *     "lastName": "MyLName",
+     *     "firstName": "MyFName"
+     * }
+     * @param Request $request
+     * @param EntityManagerInterface $em
+     * @param SerializerInterface $serializer
+     * @param UrlGeneratorInterface $urlGenerator
+     * @param ValidatorInterface $validator
+     * @param TagAwareCacheInterface $cache
+     * @return JsonResponse
+     */
     #[Route('/api/authors', name: 'createAuthor', methods:['POST'])]
     #[IsGranted('ROLE_ADMIN', message: 'You are not the admin, sorry')]
     public function createAuthor(Request $request, EntityManagerInterface $em, SerializerInterface $serializer, UrlGeneratorInterface $urlGenerator, ValidatorInterface $validator, TagAwareCacheInterface $cache): JsonResponse
@@ -78,6 +116,19 @@ class AuthorController extends AbstractController
         return new JsonResponse($jsonAuthor, Response::HTTP_CREATED, ['Location' => $location], true);
     }
 
+     /**
+     * Example  of data : 
+     * {
+     *     "lastName": "MyLName",
+     *     "firstName": "MyFName"
+     * }
+     * @param Request $request
+     * @param Author $currentAuthor
+     * @param EntityManagerInterface $em
+     * @param ValidatorInterface $validator
+     * @param TagAwareCacheInterface $cache
+     * @return JsonResponse
+     */
     #[Route('/api/authors/{id}', name: 'updateAuthor', methods:['PUT'])]
     #[IsGranted('ROLE_ADMIN', message: 'You are not the admin, sorry')]
     public function updateAuthor(Request $request, Author $currentAuthor, EntityManagerInterface $em, SerializerInterface $serializer, ValidatorInterface $validator, TagAwareCacheInterface $cache): JsonResponse
