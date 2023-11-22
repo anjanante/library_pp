@@ -23,6 +23,15 @@ use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class BookController extends AbstractController
 {
+    /**
+     * get all books 
+     *
+     * @param BookRepository $bookRepository
+     * @param SerializerInterface $serializer
+     * @param Request $request
+     * @param TagAwareCacheInterface $cache
+     * @return JsonResponse
+     */
     #[Route('/api/books', name: 'book', methods:['GET'])]
     public function getAllBooks(BookRepository $bookRepository, SerializerInterface $serializer, Request $request, TagAwareCacheInterface $cache): JsonResponse
     {
@@ -41,6 +50,13 @@ class BookController extends AbstractController
         return new JsonResponse($jsonBookList, Response::HTTP_OK, [], true);
     }
 
+    /**
+     * Get one book from id 
+     *
+     * @param Book $book
+     * @param SerializerInterface $serializer
+     * @return JsonResponse
+     */
     #[Route('/api/books/{id}', name: 'detailBook', methods:['GET'])]
     public function getOneBook(Book $book, SerializerInterface $serializer): JsonResponse
     {
@@ -49,31 +65,57 @@ class BookController extends AbstractController
         return new JsonResponse($jsonBook, Response::HTTP_OK, [], true);
     }
 
+    /**
+     * Delete one book from id. 
+     *
+     * @param Book $book
+     * @param EntityManagerInterface $em
+     * @param TagAwareCacheInterface $cache
+     * @return JsonResponse 
+     */
     #[Route('/api/books/{id}', name: 'deleteBook', methods:['DELETE'])]
     #[IsGranted('ROLE_ADMIN', message: 'You are not the admin, sorry')]
     public function deleteOneBook(Book $book, EntityManagerInterface $em, TagAwareCacheInterface $cache): JsonResponse
     {
-        $cache->invalidateTags(['booksCache']);
         $em->remove($book);
         $em->flush();
+        $cache->invalidateTags(['booksCache']);
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
 
+    /**
+     * Example  of data : 
+     * {
+     *     "title": "My title",
+     *     "coverText": "This is the history of a man", 
+     *     "idAuthor": 5
+     * }
+     * @param Request $request
+     * @param EntityManagerInterface $em
+     * @param SerializerInterface $serializer
+     * @param UrlGeneratorInterface $urlGenerator
+     * @param AuthorRepository $authorRepository
+     * @param ValidatorInterface $validator
+     * @param TagAwareCacheInterface $cache
+     * @return JsonResponse
+     */
     #[Route('/api/books', name: 'createBook', methods:['POST'])]
     #[IsGranted('ROLE_ADMIN', message: 'You are not the admin, sorry')]
     public function createBook(Request $request, EntityManagerInterface $em, SerializerInterface $serializer, UrlGeneratorInterface $urlGenerator, AuthorRepository $authorRepository, ValidatorInterface $validator, TagAwareCacheInterface $cache): JsonResponse
     {
         $book   = $serializer->deserialize($request->getContent(), Book::class, 'json');
-        //set author
-        $content    = $request->toArray();
-        $idAuthor   = $content['idAuthor'] ?? -1;
-        $book->setAuthor($authorRepository->find($idAuthor));
 
         $errors = $validator->validate($book);
         if($errors->count() > 0){
             return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
             // throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, "La request is invalid"); //for subscriber
         }
+
+        //set author
+        $content    = $request->toArray();
+        $idAuthor   = $content['idAuthor'] ?? -1;
+        $book->setAuthor($authorRepository->find($idAuthor));
+
         $em->persist($book);
         $em->flush();
 
@@ -85,7 +127,22 @@ class BookController extends AbstractController
         $location   = $urlGenerator->generate('detailBook', ['id' => $book->getid()], UrlGeneratorInterface::ABSOLUTE_PATH);
         return new JsonResponse($jsonBook, Response::HTTP_CREATED, ['Location' => $location], true);
     }
-
+    
+    /**
+     * Example  of data : 
+     * {
+     *     "title": "My title",
+     *     "coverText": "This is the history of a man", 
+     *     "idAuthor": 5
+     * }
+     * @param Request $request
+     * @param Book $currentBook
+     * @param EntityManagerInterface $em
+     * @param AuthorRepository $authorRepository
+     * @param ValidatorInterface $validator
+     * @param TagAwareCacheInterface $cache
+     * @return JsonResponse
+     */
     #[Route('/api/books/{id}', name: 'updateBook', methods:['PUT'])]
     #[IsGranted('ROLE_ADMIN', message: 'You are not the admin, sorry')]
     public function updateBook(Request $request, Book $currentBook, EntityManagerInterface $em, SerializerInterface $serializer,  AuthorRepository $authorRepository, ValidatorInterface $validator, TagAwareCacheInterface $cache): JsonResponse
