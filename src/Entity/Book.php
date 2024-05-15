@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\BookRepository;
 use Doctrine\ORM\Mapping as ORM;
 use JMS\Serializer\Annotation\Groups;
+use JMS\Serializer\Annotation\Since;
 use Symfony\Component\Validator\Constraints as Assert;
 use Hateoas\Configuration\Annotation as Hateoas;
 
@@ -62,6 +63,7 @@ class Book
 
     #[ORM\Column(length: 255, nullable: true)]
     #[Groups(["getBooks"])]
+    #[Since("2.0")]
     private ?string $comment = null;
 
     public function getId(): ?int

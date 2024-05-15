@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Book;
 use App\Repository\AuthorRepository;
 use App\Repository\BookRepository;
+use App\Service\VersionningService;
 use Doctrine\ORM\EntityManagerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -58,9 +59,10 @@ class BookController extends AbstractController
      * @return JsonResponse
      */
     #[Route('/api/books/{id}', name: 'detailBook', methods:['GET'])]
-    public function getOneBook(Book $book, SerializerInterface $serializer): JsonResponse
+    public function getOneBook(Book $book, SerializerInterface $serializer, VersionningService $versionningService): JsonResponse
     {
         $context = SerializationContext::create()->setGroups(['getBooks']);
+        $context->setVersion($versionningService->getVersion());
         $jsonBook   = $serializer->serialize($book,'json', $context);
         return new JsonResponse($jsonBook, Response::HTTP_OK, [], true);
     }
