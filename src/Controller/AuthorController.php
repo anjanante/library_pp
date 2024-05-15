@@ -146,7 +146,7 @@ class AuthorController extends AbstractController
         //empty the cache
         $cache->invalidateTags(['authorsCache']);
 
-        $em->persist($author);
+        $em->persist($currentAuthor);
         $em->flush();
         
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
