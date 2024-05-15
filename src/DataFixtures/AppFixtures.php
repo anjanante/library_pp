@@ -48,6 +48,7 @@ class AppFixtures extends Fixture
             $book->setTitle('Title '.$i);
             $book->setCoverText('Cover number '.$i);
             $book->setAuthor($aAuthor[array_rand($aAuthor)]);
+            $book->setComment('Comment '.$i);
             $manager->persist($book);
         }
         $manager->flush();
