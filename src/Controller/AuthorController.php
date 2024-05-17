@@ -18,11 +18,37 @@ use JMS\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use Nelmio\ApiDocBundle\Annotation\Security;
+use OpenApi\Annotations as OA;
 
 class AuthorController extends AbstractController
 {
     /**
-     * get all authors 
+     * This method retrieves all the authors.
+     *
+     * @OA\Response(
+     *     response=200,
+     *     description="Back to author list",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=Book::class, groups={"getBooks"}))
+     *     )
+     * )
+     * @OA\Parameter(
+     *     name="page",
+     *     in="query",
+     *     description="The page you want to retrieve",
+     *     @OA\Schema(type="int")
+     * )
+     *
+     * @OA\Parameter(
+     *     name="limit",
+     *     in="query",
+     *     description="The number of elements to be retrieved",
+     *     @OA\Schema(type="int")
+     * )
+     * @OA\Tag(name="Authors")
      *
      * @param AuthorRepository $authorRepository
      * @param SerializerInterface $serializer
