@@ -21,11 +21,37 @@ use JMS\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use Nelmio\ApiDocBundle\Annotation\Security;
+use OpenApi\Annotations as OA;
 
 class BookController extends AbstractController
 {
     /**
-     * get all books 
+     * This method retrieves all the books.
+     *
+     * @OA\Response(
+     *     response=200,
+     *     description="Back to book list",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=Book::class, groups={"getBooks"}))
+     *     )
+     * )
+     * @OA\Parameter(
+     *     name="page",
+     *     in="query",
+     *     description="The page you want to retrieve",
+     *     @OA\Schema(type="int")
+     * )
+     *
+     * @OA\Parameter(
+     *     name="limit",
+     *     in="query",
+     *     description="The number of elements to be retrieved",
+     *     @OA\Schema(type="int")
+     * )
+     * @OA\Tag(name="Books")
      *
      * @param BookRepository $bookRepository
      * @param SerializerInterface $serializer
@@ -53,6 +79,8 @@ class BookController extends AbstractController
 
     /**
      * Get one book from id 
+     * 
+     * @OA\Tag(name="Books")
      *
      * @param Book $book
      * @param SerializerInterface $serializer
@@ -68,7 +96,9 @@ class BookController extends AbstractController
     }
 
     /**
-     * Delete one book from id. 
+     * Delete one book from id.
+     * 
+     * @OA\Tag(name="Books")
      *
      * @param Book $book
      * @param EntityManagerInterface $em
@@ -92,6 +122,9 @@ class BookController extends AbstractController
      *     "coverText": "This is the history of a man", 
      *     "idAuthor": 5
      * }
+     * 
+     * @OA\Tag(name="Books")
+     * 
      * @param Request $request
      * @param EntityManagerInterface $em
      * @param SerializerInterface $serializer
@@ -137,6 +170,9 @@ class BookController extends AbstractController
      *     "coverText": "This is the history of a man", 
      *     "idAuthor": 5
      * }
+     * 
+     * @OA\Tag(name="Books")
+     * 
      * @param Request $request
      * @param Book $currentBook
      * @param EntityManagerInterface $em

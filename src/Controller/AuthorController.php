@@ -18,11 +18,37 @@ use JMS\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use Nelmio\ApiDocBundle\Annotation\Security;
+use OpenApi\Annotations as OA;
 
 class AuthorController extends AbstractController
 {
     /**
-     * get all authors 
+     * This method retrieves all the authors.
+     *
+     * @OA\Response(
+     *     response=200,
+     *     description="Back to author list",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=Book::class, groups={"getBooks"}))
+     *     )
+     * )
+     * @OA\Parameter(
+     *     name="page",
+     *     in="query",
+     *     description="The page you want to retrieve",
+     *     @OA\Schema(type="int")
+     * )
+     *
+     * @OA\Parameter(
+     *     name="limit",
+     *     in="query",
+     *     description="The number of elements to be retrieved",
+     *     @OA\Schema(type="int")
+     * )
+     * @OA\Tag(name="Authors")
      *
      * @param AuthorRepository $authorRepository
      * @param SerializerInterface $serializer
@@ -50,6 +76,8 @@ class AuthorController extends AbstractController
 
     /**
      * Get one author from id 
+     * 
+     * @OA\Tag(name="Authors")
      *
      * @param Author $author
      * @param SerializerInterface $serializer
@@ -65,6 +93,8 @@ class AuthorController extends AbstractController
 
     /**
      * Delete one author from id. 
+     * 
+     * @OA\Tag(name="Authors")
      *
      * @param Author $author
      * @param EntityManagerInterface $em
@@ -87,6 +117,9 @@ class AuthorController extends AbstractController
      *     "lastName": "MyLName",
      *     "firstName": "MyFName"
      * }
+     * 
+     * @OA\Tag(name="Authors")
+     * 
      * @param Request $request
      * @param EntityManagerInterface $em
      * @param SerializerInterface $serializer
@@ -122,6 +155,9 @@ class AuthorController extends AbstractController
      *     "lastName": "MyLName",
      *     "firstName": "MyFName"
      * }
+     * 
+     * @OA\Tag(name="Authors")
+     * 
      * @param Request $request
      * @param Author $currentAuthor
      * @param EntityManagerInterface $em
