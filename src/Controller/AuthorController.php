@@ -76,6 +76,8 @@ class AuthorController extends AbstractController
 
     /**
      * Get one author from id 
+     * 
+     * @OA\Tag(name="Authors")
      *
      * @param Author $author
      * @param SerializerInterface $serializer
@@ -91,6 +93,8 @@ class AuthorController extends AbstractController
 
     /**
      * Delete one author from id. 
+     * 
+     * @OA\Tag(name="Authors")
      *
      * @param Author $author
      * @param EntityManagerInterface $em
@@ -113,6 +117,9 @@ class AuthorController extends AbstractController
      *     "lastName": "MyLName",
      *     "firstName": "MyFName"
      * }
+     * 
+     * @OA\Tag(name="Authors")
+     * 
      * @param Request $request
      * @param EntityManagerInterface $em
      * @param SerializerInterface $serializer
@@ -148,6 +155,9 @@ class AuthorController extends AbstractController
      *     "lastName": "MyLName",
      *     "firstName": "MyFName"
      * }
+     * 
+     * @OA\Tag(name="Authors")
+     * 
      * @param Request $request
      * @param Author $currentAuthor
      * @param EntityManagerInterface $em
