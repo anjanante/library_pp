@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 use JMS\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use Hateoas\Configuration\Annotation as Hateoas;
+use ApiPlatform\Metadata\ApiResource;
 
 /**
  * @Hateoas\Relation(
@@ -39,6 +40,7 @@ use Hateoas\Configuration\Annotation as Hateoas;
  * )
  *
  */
+#[ApiResource]
 #[ORM\Entity(repositoryClass: AuthorRepository::class)]
 class Author
 {

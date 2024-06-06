@@ -8,6 +8,7 @@ use JMS\Serializer\Annotation\Groups;
 use JMS\Serializer\Annotation\Since;
 use Symfony\Component\Validator\Constraints as Assert;
 use Hateoas\Configuration\Annotation as Hateoas;
+use ApiPlatform\Metadata\ApiResource;
 
 /**
  * @Hateoas\Relation(
@@ -37,6 +38,7 @@ use Hateoas\Configuration\Annotation as Hateoas;
  *      exclusion = @Hateoas\Exclusion(groups="getBooks", excludeIf = "expr(not is_granted('ROLE_ADMIN'))"),
  * )
  */
+#[ApiResource]
 #[ORM\Entity(repositoryClass: BookRepository::class)]
 class Book
 {
